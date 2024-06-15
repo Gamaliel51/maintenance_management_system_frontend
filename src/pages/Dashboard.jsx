@@ -34,10 +34,12 @@ const ComplaintEditModal = (props) => {
         })
     }
 
+    console.log(complaint)
+
     return(
         <div className="min-h-screen w-full flex flex-col fixed top-0 left-0 z-30 bg-gray-600 bg-opacity-25">
             <div onClick={() => setShow(false)} className="text-3xl font-bold absolute top-14 right-14 cursor-pointer text-white">X</div>
-            <div className="h-[80vh] w-3/5 m-auto flex flex-col rounded-md bg-white">
+            <div className="h-[90vh] w-3/5 m-auto flex flex-col rounded-md bg-white">
                 <p className="w-full px-10 py-2 font-semibold text-xs mb-3 border-solid border-b-2">ID: {complaint.complaint_id}</p>
                 <p className="w-full px-10 py-2 font-semibold text-sm mb-3 border-solid border-b-2">Location:  {complaint.building} - {complaint.location}</p>
                 <p className="w-full px-10 py-2 font-semibold text-sm mb-3 border-solid border-b-2">Category: {complaint.category}</p>
@@ -46,6 +48,7 @@ const ComplaintEditModal = (props) => {
                 <p className="w-full px-10 py-2 font-semibold text-sm mb-3 border-solid border-b-2">Date:  {complaint.start_date}</p>
                 <p className="w-full px-10 py-2 font-semibold text-sm mb-3 border-solid border-b-2">Completed:  {complaint.complete_date}</p>
                 <p className="w-full px-10 py-2 font-semibold text-sm mb-3 border-solid border-b-2">Status:  {complaint.status}</p>
+                <p className="w-full px-10 py-2 font-semibold text-sm mb-3 border-solid border-b-2">Comment:  {complaint.satisfaction}</p>
                 <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-8/12 h-fit mx-auto py-4 text-center">
                     <option value="received">Received</option>
                     <option value="in progress">In progress</option>
@@ -79,24 +82,6 @@ const DashBoard = (props) => {
 
     const [start_date_filter, setStartDateFilter] = useState('')
     const [stop_date_filter, setStopDateFilter] = useState('')
-
-    
-    const handleSubmit = (event) => {
-        event.preventDefault()
-        setLoading(true)
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
-            }
-        }
-        axios.post(`/api/generate/`, {gpa: gpa, courses: courses}, config)
-        .then((res) => {
-            setPossibleResults(res.data)
-        })
-        .catch((err) => {
-            console.error(err)
-        })
-    }
 
     useEffect(() => {
         if(carpentry){
@@ -183,7 +168,7 @@ const DashBoard = (props) => {
         <div className="min-h-screen w-full bg-[#eaecef]">
             <Navbar/>
             {showComplaintEdit && <ComplaintEditModal complaint={currentComplaint} setShow={setShowComplaintEdit}/>}
-            {/* <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button> */}
+            {/* <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button> */}
             <div className="h-[90vh] w-full my-4 flex flex-row flex-wrap justify-end items-center">
                 <div className="h-[80vh] w-[25%] px-4 flex flex-col justify-evenly fixed left-0 rounded-r-xl bg-white">
                     <p className="border-solid border-b-2 pb-2">Categories</p>
@@ -238,100 +223,258 @@ const DashBoard = (props) => {
                                         <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
                                         <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
                                         <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                        <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
+                                        <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
                                     </div>
                                 )
                             }
                             else{
                                 if(carpentry && complaint.category === 'carpentry'){
-                                    return(
-                                        <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                            <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                            <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                            <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                            <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                            <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                            <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                            <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                            <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                            <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                        </div>
-                                    )
+                                    if(received && complaint.status === 'received'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(progress && complaint.status === 'in progress'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(done && complaint.status === 'done'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(!done && !progress && !received){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
                                 }
                                 if(electrical && complaint.category === 'electrical'){
-                                    return(
-                                        <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                            <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                            <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                            <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                            <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                            <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                            <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                            <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                            <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                            <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                        </div>
-                                    )
+                                    if(received && complaint.status === 'received'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(progress && complaint.status === 'in progress'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(done && complaint.status === 'done'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(!done && !progress && !received){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
                                 }
-                                if(facility && complaint.category === 'facility'){
-                                    return(
-                                        <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                            <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                            <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                            <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                            <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                            <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                            <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                            <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                            <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                            <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                        </div>
-                                    )
+                                if(facility && complaint.category === 'facilities'){
+                                    if(received && complaint.status === 'received'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(progress && complaint.status === 'in progress'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(done && complaint.status === 'done'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(!done && !progress && !received){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
                                 }
-                                if(received && complaint.status === 'received'){
-                                    return(
-                                        <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                            <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                            <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                            <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                            <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                            <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                            <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                            <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                            <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                            <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                        </div>
-                                    )
-                                }
-                                if(progress && complaint.status === 'in progress'){
-                                    return(
-                                        <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                            <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                            <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                            <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                            <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                            <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                            <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                            <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                            <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                            <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                        </div>
-                                    )
-                                }
-                                if(done && complaint.status === 'done'){
-                                    return(
-                                        <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                            <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                            <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                            <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                            <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                            <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                            <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                            <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                            <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                            <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                        </div>
-                                    )
+                                if(!carpentry && !electrical && !facility){
+                                    if(received && complaint.status === 'received'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(progress && complaint.status === 'in progress'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(done && complaint.status === 'done'){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
+                                    if(!done && !progress && !received){
+                                        return(
+                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                            </div>
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -355,100 +498,258 @@ const DashBoard = (props) => {
                                             <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
                                             <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
                                             <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                            <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
+                                            <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
                                         </div>
                                     )
                                 }
                                 else{
                                     if(carpentry && complaint.category === 'carpentry'){
-                                        return(
-                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                            </div>
-                                        )
+                                        if(received && complaint.status === 'received'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(progress && complaint.status === 'in progress'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(done && complaint.status === 'done'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(!done && !progress && !received){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
                                     }
                                     if(electrical && complaint.category === 'electrical'){
-                                        return(
-                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                            </div>
-                                        )
+                                        if(received && complaint.status === 'received'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(progress && complaint.status === 'in progress'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(done && complaint.status === 'done'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(!done && !progress && !received){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
                                     }
-                                    if(facility && complaint.category === 'facility'){
-                                        return(
-                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                            </div>
-                                        )
+                                    if(facility && complaint.category === 'facilities'){
+                                        if(received && complaint.status === 'received'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(progress && complaint.status === 'in progress'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(done && complaint.status === 'done'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(!done && !progress && !received){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
                                     }
-                                    if(received && complaint.status === 'received'){
-                                        return(
-                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                            </div>
-                                        )
-                                    }
-                                    if(progress && complaint.status === 'in progress'){
-                                        return(
-                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                            </div>
-                                        )
-                                    }
-                                    if(done && complaint.status === 'done'){
-                                        return(
-                                            <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
-                                                <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
-                                                <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
-                                                <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
-                                                <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
-                                                <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
-                                                <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
-                                                <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
-                                                <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
-                                                <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">Edit Complaint Status</button>
-                                            </div>
-                                        )
+                                    if(!carpentry && !electrical && !facility){
+                                        if(received && complaint.status === 'received'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(progress && complaint.status === 'in progress'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(done && complaint.status === 'done'){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
+                                        if(!done && !progress && !received){
+                                            return(
+                                                <div className="h-80 w-64 my-2 mx-6 px-4 py-2 flex flex-col rounded-lg shadow-2xl bg-white">
+                                                    <p className="font-thin text-xs mb-3">{complaint.complaint_id}</p>
+                                                    <p className="font-thin text-sm mb-3">Location:  {complaint.building} - {complaint.location}</p>
+                                                    <p className="font-thin text-sm mb-3">Category: {complaint.category}</p>
+                                                    <p className="font-thin text-sm mb-3">Item:  {complaint.item}</p>
+                                                    <p className="font-thin text-sm mb-3">Reported by {complaint.studentid} - {complaint.studentname}</p>
+                                                    <p className="font-thin text-sm mb-3">Date:  {complaint.start_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Completed:  {complaint.complete_date}</p>
+                                                    <p className="font-thin text-sm mb-3">Status:  {complaint.status}</p>
+                                                    <button onClick={() => {setCurrentComplaint(complaint);setShowComplaintEdit(true)}} className="w-3/5 h-fit py-1 px-2 mx-auto text-sm font-semibold rounded-sm hover:bg-[#4C9F70] bg-[#6fe957]">View/Edit Complaint Status</button>
+                                                </div>
+                                            )
+                                        }
                                     }
                                 }
                             }

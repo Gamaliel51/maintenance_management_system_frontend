@@ -10,6 +10,8 @@ const GenerateReport = () => {
     const [reportList, setReportList] = useState([])
     const [selectedList, setSelectedList] = useState('')
 
+    const [resultCount, setResultCount] = useState(0)
+
     const [showAll, setShowAll] = useState(false)
     const [carpentry, setCarpentry] = useState(false)
     const [electrical, setElectrical] = useState(false)
@@ -148,6 +150,18 @@ const GenerateReport = () => {
         }
     }, [selectedList])
 
+    useEffect(() => {
+        if(reportList.length !== 0){
+            let count = 0
+            reportList.map((item) => {
+                if(item !== null){
+                    count += 1
+                }
+            })
+            setResultCount(count)
+        }
+    }, [reportList])
+
 
     return(
         <div className="min-h-screen w-full bg-[#eaecef]">
@@ -200,6 +214,7 @@ const GenerateReport = () => {
                 </div>
                 <div className="h-[100%] w-[75%] flex flex-col justify-start overflow-y-auto">
                     {reportList.length === 0 && <p className="w-full py-4 text-center">Please use the categories to generate report.</p>}
+                    {reportList.length !== 0 && <p className="w-full py-4 text-center">{resultCount} records.</p>}
                     {reportList.map((complaint) => {
                         if(complaint !== null){
                             return(

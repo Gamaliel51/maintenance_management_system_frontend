@@ -36,7 +36,11 @@ const Login = (props) => {
                 setUserName('')
                 setPassword('')
                 navigate('/maindashboard')
+                return
             }
+            setLoading(false)
+            setError(res.data.error)
+            return
         })
         .catch((err) => {
             setLoading(false)
@@ -73,7 +77,7 @@ const Login = (props) => {
                     <img src="src/assets/result.png" alt="" className='h-full rounded-full'/>
                     <p className='h-full w-fit mx-5 text-center pt-5 font-bold text-2xl'>Maintenance Pro</p>
                 </div>
-                <div onClick={gotoSignup} className='h-10 w-36 mx-24 mt-10 pt-2 text-center shadow-2xl rounded-md font-semibold cursor-pointer hover:bg-[#4C9F70] bg-[#6fe957]'>SignUp</div>
+                {/* <div onClick={gotoSignup} className='h-10 w-36 mx-24 mt-10 pt-2 text-center shadow-2xl rounded-md font-semibold cursor-pointer hover:bg-[#4C9F70] bg-[#6fe957]'>SignUp</div> */}
             </div>
         </div>
     )
